@@ -25,23 +25,28 @@
 
 @implementation MediaLibraryHelper
 
-- (void)dealloc{
-    self.delegate = nil;
-    self.rootViewController = nil;
-    
-    [super dealloc];
-}
 
 #pragma mark - Public Methods
 
 - (void)showPhotoLibrary{
-    if([self isMediaLibraryAvailable] && [self canUserPickPhotosFromMediaLibrary]){
-        if(_rootViewController){
-            UIImagePickerController *pickerVC = [[[UIImagePickerController alloc] init] autorelease];
-            pickerVC.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-            pickerVC.mediaTypes = @[(NSString *)kUTTypeImage];
-            pickerVC.delegate = self;
-            [_rootViewController presentViewController:pickerVC animated:YES completion:nil];
+    ALAuthorizationStatus authStatus = [ALAssetsLibrary authorizationStatus];
+    if (authStatus == ALAuthorizationStatusRestricted || authStatus == ALAuthorizationStatusDenied){
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示"
+                                                        message:@"请在设备的\"设置-隐私-照片\"中允许访问照片。"
+                                                       delegate:nil
+                                              cancelButtonTitle:@"确定"
+                                              otherButtonTitles:nil];
+        [alert show];
+    }
+    else if (authStatus == ALAuthorizationStatusAuthorized || authStatus == ALAuthorizationStatusNotDetermined) {
+        if([self isMediaLibraryAvailable] && [self canUserPickPhotosFromMediaLibrary]){
+            if(_rootViewController){
+                UIImagePickerController *pickerVC = [[UIImagePickerController alloc] init];
+                pickerVC.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+                pickerVC.mediaTypes = @[(NSString *)kUTTypeImage];
+                pickerVC.delegate = self;
+                [_rootViewController presentViewController:pickerVC animated:YES completion:nil];
+            }
         }
     }
 }
@@ -49,7 +54,7 @@
 - (void)showVideoLibrary{
     if([self isMediaLibraryAvailable] && [self canUserPickVideosFromMediaLibrary]){
         if(_rootViewController){
-            UIImagePickerController *pickerVC = [[[UIImagePickerController alloc] init] autorelease];
+            UIImagePickerController *pickerVC = [[UIImagePickerController alloc] init];
             pickerVC.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
             pickerVC.mediaTypes = @[(NSString *)kUTTypeMovie];
             pickerVC.delegate = self;
@@ -63,7 +68,7 @@
         return;
     }
     
-    MPMediaPickerController *mpc = [[[MPMediaPickerController alloc] initWithMediaTypes:MPMediaTypeAny] autorelease];
+    MPMediaPickerController *mpc = [[MPMediaPickerController alloc] initWithMediaTypes:MPMediaTypeAny];
     mpc.delegate = self;
     mpc.prompt = @"Please select a music";
     mpc.allowsPickingMultipleItems = NO;
@@ -127,10 +132,10 @@
                 if(_delegate && [_delegate respondsToSelector:@selector(mediaLibrary:finishGettingPhotoGPSInfoWithLatitude:longitude:)]){
                     __block NSMutableDictionary *imageMetadata = nil;
                     NSURL *assetURL = [info objectForKey:UIImagePickerControllerReferenceURL];
-                    ALAssetsLibrary *library = [[[ALAssetsLibrary alloc] init] autorelease];
+                    ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
                     [library assetForURL:assetURL resultBlock:^(ALAsset *asset) {
                         
-                        imageMetadata = [[[NSMutableDictionary alloc] initWithDictionary:asset.defaultRepresentation.metadata] autorelease];
+                        imageMetadata = [[NSMutableDictionary alloc] initWithDictionary:asset.defaultRepresentation.metadata];
                         NSDictionary *gpsDict = [imageMetadata objectForKey:(NSString *)kCGImagePropertyGPSDictionary];
                         if(gpsDict){
                             float latitude = [[gpsDict objectForKey:@"Latitude"] floatValue];

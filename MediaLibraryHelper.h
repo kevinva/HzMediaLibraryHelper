@@ -8,16 +8,14 @@
 
 //注：使用kCGImagePropertyGPSDictionary要包含ImageIO.framework
 
-#import <Foundation/Foundation.h>
-
-@import UIKit;
+#import <UIKit/UIKit.h>
 
 @protocol MediaLibraryHelperDelegate;
 
 @interface MediaLibraryHelper : NSObject
 
-@property (nonatomic, assign) id<MediaLibraryHelperDelegate> delegate;
-@property (nonatomic, assign) UIViewController *rootViewController;
+@property (nonatomic,   weak) id<MediaLibraryHelperDelegate> delegate;
+@property (nonatomic, strong) UIViewController *rootViewController;
 
 - (void)showPhotoLibrary;
 - (void)showVideoLibrary;
